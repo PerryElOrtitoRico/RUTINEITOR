@@ -118,6 +118,35 @@ class CalculadoraMesocicloTest {
     }
 
     @Test
+    void nuncaHaySeriesSobreElTechoNiFueraDeLasZonasDeLaSemana() throws Exception {
+        // barrido como el del revisor: techo 80 % compartiendo la bolsa con otro sin techo
+        var ejercicios = Map.of(1L, fuerza(1, 100.0, 80), 2L, fuerza(2, 100.0, 100));
+        for (int vol = 30; vol <= 400; vol += 20) {
+            for (int imr = 62; imr <= 75; imr++) {
+                for (int dias = 3; dias <= 5; dias++) {
+                    var mes = new Mesociclo(0, 1, LocalDate.of(2026, 11, 2), 4, new ParametrosTipo(0, 72),
+                            new ParametrosTipo(vol, imr), 'C', dias, Map.of(),
+                            List.of(new Bloque(1, 1, 1L, 50), new Bloque(1, 2, 2L, 50)), "", "", Map.of());
+                    var r = CalculadoraMesociclo.calcular(M, mes, ejercicios);
+                    var planes = DistribucionVolumen.porMicrociclo(M, mes.fuerza(), 4, 'C');
+                    for (var rb : r.bloques()) {
+                        for (int w = 0; w < 4; w++) {
+                            int[] planZonas = DistribucionZonas.repsPorZona(M, planes.get(w).volumen(), planes.get(w).imr());
+                            for (Zona z : Zona.values()) {
+                                boolean hay = !rb.semanas().get(w).seriesPorZona().get(z).get(0).isEmpty();
+                                String caso = "vol=" + vol + " imr=" + imr + " dias=" + dias + " sem=" + (w + 1) + " " + z
+                                        + " " + rb.ejercicio().nombre();
+                                if (hay) assertTrue(z.pct() <= rb.ejercicio().techoPct(), "sobre el techo: " + caso);
+                                if (hay) assertTrue(planZonas[z.ordinal()] > 0, "zona no planificada: " + caso);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     void hipertrofiaUsaPlantilla() throws Exception {
         var hip = new Ejercicio(3, 1, "Biceps", Tipo.HIPERTROFIA, null, null, 100, Map.of(), null, 0, true);
         var r = CalculadoraMesociclo.calcular(M, mesociclo(new ParametrosTipo(0, 72), 'A',

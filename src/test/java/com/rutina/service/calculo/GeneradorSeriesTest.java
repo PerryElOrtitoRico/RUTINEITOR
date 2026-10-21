@@ -51,6 +51,19 @@ class GeneradorSeriesTest {
     }
 
     @Test
+    void elRestoNoCreaSeriesEnZonasSinRepsPlanificadas() {
+        var s = GeneradorSeries.generar(new int[]{0, 0, 0, 0, 0, 1, 0, 0, 0, 0}, new int[]{4, 4, 4, 4, 3, 3, 3, 2, 1, 1});
+        assertTrue(s.porPaso().stream().allMatch(List::isEmpty), s.toString());
+        assertEquals(-1, s.desvio());
+    }
+
+    @Test
+    void elRestoSaltaZonasVaciasHastaLaProximaPlanificada() {
+        var s = GeneradorSeries.generar(new int[]{6, 0, 6}, new int[]{4, 4, 4});
+        assertEquals(List.of(List.of(4, 4), List.of(), List.of(4)), s.porPaso());
+    }
+
+    @Test
     void notacion() {
         assertEquals("3.3.3.3", GeneradorSeries.notacion(List.of(3, 3, 3, 3)));
         assertEquals("", GeneradorSeries.notacion(List.of()));

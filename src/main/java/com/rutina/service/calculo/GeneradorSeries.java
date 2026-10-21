@@ -29,6 +29,11 @@ public final class GeneradorSeries {
         int enSeries = 0;
         for (int i = 0; i < reps.length; i++) {
             planificado += reps[i];
+            if (reps[i] == 0) {
+                // zona que no se trabaja (no planificada, o sobre el techo): el resto la saltea
+                porPaso.add(List.of());
+                continue;
+            }
             int r = reps[i] + arrastre;
             if (r <= 0) {
                 porPaso.add(List.of());
