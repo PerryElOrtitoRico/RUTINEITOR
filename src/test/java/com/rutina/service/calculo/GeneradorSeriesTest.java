@@ -16,10 +16,17 @@ class GeneradorSeriesTest {
     }
 
     @Test
-    void pocasReps() {
+    void pocasRepsSeAcumulanSinSeriesSueltas() {
         var s = GeneradorSeries.generar(new int[]{1, 0, 1}, 4);
-        assertEquals(List.of(List.of(1), List.of(), List.of(1)), s.porDia());
-        assertEquals(0, s.desvio());
+        assertEquals(List.of(List.of(), List.of(), List.of(4)), s.porDia());
+        assertEquals(2, s.desvio());
+    }
+
+    @Test
+    void restoChicoAlFinalSeDescarta() {
+        var s = GeneradorSeries.generar(new int[]{1, 0, 0}, 4);
+        assertEquals(List.of(List.of(), List.of(), List.of()), s.porDia());
+        assertEquals(-1, s.desvio());
     }
 
     @Test

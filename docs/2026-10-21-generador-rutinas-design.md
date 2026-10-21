@@ -137,7 +137,7 @@ Es la misma lógica que la hoja Entrenamiento (fila 5 y columnas A–E) del Exce
 
 Para un ejercicio, una zona z y un día, con `r` repeticiones y `s` = repeticiones por serie de esa zona para ese ejercicio:
 
-- cantidad de series `n = round(r / s)`; si `r > 0` y `n = 0`, se hace 1 serie de `r`;
+- cantidad de series `n = round(r / s)`; si `n = 0` no se hace ninguna serie ese día y las `r` repeticiones pasan al día siguiente (arrastre). **[decisión de diseño, ajustada al implementar]** Así nunca aparecen series sueltas de otro tamaño (por ejemplo, una serie de 1 al 55 %);
 - se anota como en el libro: `s.s.s` (por ejemplo, `3.3.3.3` = 4 series de 3);
 - la diferencia entre `n × s` y `r` se suma a los contadores, así el usuario ve cuánto se apartó de la teoría. **[decisión de diseño]** Se acepta este pequeño desvío a cambio de series limpias.
 - **Arrastre del resto [decisión de diseño]:** como en un día con pocas repeticiones el redondeo de una zona puede desviarse mucho, la diferencia `r − n × s` de cada zona se **arrastra al día siguiente del microciclo en esa misma zona y ejercicio** antes de calcular sus series. El sobrante del último día queda como desvío. Así el total semanal de cada zona queda a menos de una serie de la teoría. Redondeo de mitades: hacia arriba (`HALF_UP`).

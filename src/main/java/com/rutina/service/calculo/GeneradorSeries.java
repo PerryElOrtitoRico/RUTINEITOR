@@ -24,16 +24,11 @@ public final class GeneradorSeries {
                 arrastre = r;
                 continue;
             }
+            // Nunca series sueltas de otro tamaño: si no alcanza para media serie, se acumula para otro día
             int n = Redondeo.halfUp((double) r / repsPorSerie);
-            if (n == 0) {
-                porDia.add(List.of(r));
-                enSeries += r;
-                arrastre = 0;
-            } else {
-                porDia.add(Collections.nCopies(n, repsPorSerie));
-                enSeries += n * repsPorSerie;
-                arrastre = r - n * repsPorSerie;
-            }
+            porDia.add(n == 0 ? List.of() : Collections.nCopies(n, repsPorSerie));
+            enSeries += n * repsPorSerie;
+            arrastre = r - n * repsPorSerie;
         }
         return new SeriesZona(porDia, enSeries - planificado);
     }
