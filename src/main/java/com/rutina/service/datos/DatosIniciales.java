@@ -1,6 +1,7 @@
 package com.rutina.service.datos;
 
 import com.rutina.model.CeldaPlantilla;
+import com.rutina.model.Ejercicio;
 import com.rutina.model.ClavePlantilla;
 import com.rutina.model.Metodologia;
 import com.rutina.model.Plantilla;
@@ -131,6 +132,80 @@ public final class DatosIniciales {
             filas.add(Arrays.stream(semana.trim().split("\\s+")).map(CeldaPlantilla::parse).toList());
         }
         p.put(new ClavePlantilla(tipo, filas.size(), dias), new Plantilla(filas, false));
+    }
+
+    /** Hojas Ejercicios y Pliometria. {@code id} y {@code perfilId} en 0: se asignan al insertar. */
+    public static List<Ejercicio> ejercicios() {
+        List<Ejercicio> e = new ArrayList<>();
+        Object[][] filas = {
+                {"Arranque de potencia colgado", 85.0, 90.0},
+                {"Cargada de potencia colgado", 115.0, 120.0},
+                {"Arranque de potencia", 80.0, null},
+                {"Cargada de potencia", 110.0, null},
+                {"Arranque de colgado", 90.0, null},
+                {"Cargada de colgado", 115.0, null},
+                {"Arranque", 90.0, null},
+                {"Cargada", 115.0, null},
+                {"Sentadilla", 140.0, null},
+                {"Sentadila frontal", 130.0, null},
+                {"Press frontal con impulso", 90.0, 95.0},
+                {"Press frontal", 60.0, null},
+                {"Empuje de barra", 30.0, null},
+                {"Press con manuerna arrodillado", null, null},
+                {"Empuje con mancuerna", null, null},
+                {"Press banco plano", 90.0, null},
+                {"Press banco plano con mancuerna", 25.0, null},
+                {"Press banco inclinado", null, null},
+                {"Press banco inclinado con mancuerna", null, null},
+                {"Fondos", 50.0, null},
+                {"Dominadas prono", 30.0, null},
+                {"Dominadas supina", 25.0, null},
+                {"Remo acostado", null, null},
+                {"Remo inclinado", null, null},
+                {"Remo con mancuerna", 40.0, null},
+                {"Biceps con barra w", null, null},
+                {"Biceps con mancuerna", null, null},
+                {"Triceps tras nuca", null, null},
+                {"Triceps frontal", null, null},
+                {"Tiron de cargada", 180.0, null},
+                {"Tiron de arranque", 120.0, null},
+                {"Bulgaras (mancuerna)", 30.0, null},
+        };
+        for (int i = 0; i < filas.length; i++) {
+            String nombre = (String) filas[i][0];
+            e.add(new Ejercicio(0, 0, nombre, tipoPorNombre(nombre), (Double) filas[i][1], (Double) filas[i][2],
+                    100, Map.of(), null, i, true));
+        }
+        String[][] plio = {
+                {"1A", "Con 2 pies, dos saltos delante y uno atras", "2 pies salto de costado",
+                        "1 pie, en el lugar, salto adelante y atras",
+                        "1 pie, en sentido del reloj, arrancando del centro para adelante, saltar y volver siempre al centro",
+                        "1 pie, salto en el lugar a los costados", "Salto con soga"},
+                {"1B", "1 pie en cada cajon y salto rapido en el lugar", "Pie de adelante en cajon y salto con el de atras",
+                        "Pie de atras en cajón, con el de delante salto a los costados sobre obstaculo bajo",
+                        "Del piso, subo el pie delantero al cajon (pie de atras en el piso)",
+                        "Del centro a cajones con una pierna", "Del centro con ambas piernas, rotando piernas delantera a cajon"},
+                {"1C", "Del centro, al costado, al centro, al otro costado, centro, adelante, atras [2]",
+                        "Delante dos veces, vuelvo de costado izquierdo y luego derecho [3]",
+                        "Lado a lado salto sobre cajon [2]", "1 pie delante al cajón, bajo, izquierda y derecha, subo [1]",
+                        "Entre 2 cajones, del centro, izquierda centro derecha [1]",
+                        "1 pie salto al cajon, caigo al piso, izquierda centro derecha, atras al cajon, caigo, izquierda centro derecha y repito [1]"},
+        };
+        for (String[] grupo : plio) {
+            for (int k = 1; k < grupo.length; k++) {
+                e.add(new Ejercicio(0, 0, grupo[k], Tipo.PLIOMETRIA, null, null, 100, Map.of(), grupo[0], k - 1, true));
+            }
+        }
+        return e;
+    }
+
+    /** Arranques, cargadas y empujes → potencia; bíceps y tríceps → hipertrofia; el resto → fuerza. */
+    private static Tipo tipoPorNombre(String nombre) {
+        String n = nombre.toLowerCase();
+        if (n.startsWith("tiron")) return Tipo.FUERZA;
+        if (n.contains("arranque") || n.contains("cargada") || n.startsWith("empuje")) return Tipo.POTENCIA;
+        if (n.startsWith("biceps") || n.startsWith("triceps")) return Tipo.HIPERTROFIA;
+        return Tipo.FUERZA;
     }
 
     // Hoja Calculos: contactos por día de cada nivel de pliometría

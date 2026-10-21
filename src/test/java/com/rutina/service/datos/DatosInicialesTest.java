@@ -69,6 +69,29 @@ class DatosInicialesTest {
     }
 
     @Test
+    void ejerciciosIniciales() {
+        var e = DatosIniciales.ejercicios();
+        assertEquals(32, e.stream().filter(x -> x.tipo() != Tipo.PLIOMETRIA).count());
+        assertEquals(18, e.stream().filter(x -> x.tipo() == Tipo.PLIOMETRIA).count());
+        var cargada = e.stream().filter(x -> x.nombre().equals("Cargada de potencia colgado")).findFirst().get();
+        assertEquals(115.0, cargada.rm());
+        assertEquals(120.0, cargada.rmObjetivo());
+        assertEquals(Tipo.POTENCIA, cargada.tipo());
+        assertEquals(Tipo.FUERZA, e.stream().filter(x -> x.nombre().equals("Sentadilla")).findFirst().get().tipo());
+        assertEquals(Tipo.HIPERTROFIA, e.stream().filter(x -> x.nombre().equals("Triceps frontal")).findFirst().get().tipo());
+        assertNull(e.stream().filter(x -> x.nombre().equals("Remo acostado")).findFirst().get().rm());
+        assertEquals(6, e.stream().filter(x -> "1C".equals(x.grupoPlio())).count());
+    }
+
+    @Test
+    void repsPorSerieHeredaDelTipo() {
+        var e = new com.rutina.model.Ejercicio(1, 1, "X", Tipo.FUERZA, 100.0, null, 100,
+                java.util.Map.of(com.rutina.model.Zona.Z80, 5), null, 0, true);
+        assertEquals(5, e.repsPorSerie(com.rutina.model.Zona.Z80, M));
+        assertEquals(2, e.repsPorSerie(com.rutina.model.Zona.Z90, M));
+    }
+
+    @Test
     void incrementoKg() {
         assertEquals(1.0, M.incrementoKg());
     }
