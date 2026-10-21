@@ -6,6 +6,7 @@ import com.rutina.model.Metodologia;
 import com.rutina.model.Plantilla;
 import com.rutina.model.Tipo;
 import com.rutina.model.VarianteMicro;
+import com.rutina.service.calculo.Plantillas;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,6 +112,15 @@ public final class DatosIniciales {
         agregar(p, Tipo.FUERZA, 1, "4x6-70% | 4x5-80% | 4x2-95%");
         agregar(p, Tipo.FUERZA, 1, "4x6-70% | 4x4-85% | 4x5-80% | 4x2-95%");
         agregar(p, Tipo.FUERZA, 1, "4x6-70% | 4x4-85% | 4x5-80% | 4x3-90% | 4x2-95%");
+        // 3 a 5 días por semana: inferidas a partir de las de 2 días
+        for (Tipo t : List.of(Tipo.FUERZA, Tipo.HIPERTROFIA)) {
+            for (int semanas = 2; semanas <= 5; semanas++) {
+                Plantilla dos = p.get(new ClavePlantilla(t, semanas, 2));
+                for (int dias = 3; dias <= 5; dias++) {
+                    p.put(new ClavePlantilla(t, semanas, dias), Plantillas.inferir(dos, t, dias));
+                }
+            }
+        }
         return p;
     }
 
