@@ -131,6 +131,32 @@ class PersistenciaTest {
     }
 
     @Test
+    void elJournalSeRespaldaJuntoConLaBase() throws Exception {
+        var f = d.resolve("r.db");
+        Files.writeString(f, "basura que no es una base de datos sqlite, para nada, ni un poco");
+        Files.writeString(d.resolve("r.db-journal"), "journal viejo");
+        Database.abrir(f);
+        // el journal viejo no queda junto a la base nueva (SQLite descarta uno inválido; uno válido se respalda)
+        assertFalse(Files.exists(d.resolve("r.db-journal")) && Files.readString(d.resolve("r.db-journal")).equals("journal viejo"));
+    }
+
+    @Test
+    void otrosErroresNoMuevenLaBase() throws Exception {
+        // sin permiso de lectura no es una base dañada: no se toca y se informa el error
+        var f = d.resolve("r.db");
+        new PerfilRepo(Database.abrir(f)).crear("Franco");
+        assertTrue(f.toFile().setReadable(false));
+        try {
+            assertThrows(java.sql.SQLException.class, () -> Database.abrir(f));
+            try (var l = Files.list(d)) {
+                assertEquals(0, l.filter(x -> x.getFileName().toString().contains(".bak-")).count());
+            }
+        } finally {
+            f.toFile().setReadable(true);
+        }
+    }
+
+    @Test
     void rutaPorDefectoNoEsRelativa() {
         assertTrue(Database.rutaPorDefecto().isAbsolute());
         assertTrue(Database.rutaPorDefecto().toString().endsWith("rutina/rutina.db"));

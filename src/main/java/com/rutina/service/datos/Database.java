@@ -2,6 +2,8 @@ package com.rutina.service.datos;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.sqlite.SQLiteErrorCode;
+import org.sqlite.SQLiteException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,11 +59,21 @@ public final class Database implements AutoCloseable {
         try {
             return new Database(preparar(archivo), false);
         } catch (SQLException e) {
-            // Archivo ilegible: se respalda (nunca se pisa) y se empieza una base nueva
+            // Solo un archivo dañado se reemplaza; un bloqueo, permiso o error de disco se informa sin tocar nada
+            if (!estaDanada(e)) throw e;
             String sello = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-            Files.move(archivo, archivo.resolveSibling(archivo.getFileName() + ".bak-" + sello));
+            for (String sufijo : new String[]{"", "-journal", "-wal", "-shm"}) {
+                Path f = archivo.resolveSibling(archivo.getFileName() + sufijo);
+                if (Files.exists(f)) Files.move(f, f.resolveSibling(f.getFileName() + ".bak-" + sello));
+            }
             return new Database(preparar(archivo), true);
         }
+    }
+
+    private static boolean estaDanada(SQLException e) {
+        int codigo = e instanceof SQLiteException s ? s.getResultCode().code : e.getErrorCode();
+        int primario = codigo & 0xFF;
+        return primario == SQLiteErrorCode.SQLITE_NOTADB.code || primario == SQLiteErrorCode.SQLITE_CORRUPT.code;
     }
 
     private static Connection preparar(Path archivo) throws SQLException {
