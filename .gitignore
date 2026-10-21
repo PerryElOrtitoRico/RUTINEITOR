@@ -1,0 +1,8 @@
+target/
+*.db
+*.db.bak-*
+.idea/
+.vscode/
+*.iml
+Libros/
+.superpowers/
