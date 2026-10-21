@@ -1,0 +1,95 @@
+package com.rutina.ui;
+
+import com.rutina.model.Mesociclo;
+import com.rutina.model.Perfil;
+import com.rutina.service.datos.Database;
+import com.rutina.service.datos.PerfilRepo;
+
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JTabbedPane;
+import javax.swing.WindowConstants;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+/** Ventana con las cuatro pestañas: Ejercicios, Plantillas, Macrociclo y Mesociclo. */
+public final class VentanaPrincipal extends JFrame {
+
+    private final JTabbedPane pestanas = new JTabbedPane();
+    private final PanelMesociclo panelMesociclo;
+    private boolean cerrarBaseAlSalir = true;
+
+    private VentanaPrincipal(Contexto ctx) {
+        super("Generador de rutinas — " + ctx.perfil.nombre());
+        panelMesociclo = new PanelMesociclo(ctx);
+        pestanas.addTab("Ejercicios", new PanelEjercicios(ctx));
+        pestanas.addTab("Plantillas", new PanelPlantillas(ctx));
+        pestanas.addTab("Macrociclo", new PanelMacrociclo(ctx, this::abrirMesociclo));
+        pestanas.addTab("Mesociclo", panelMesociclo);
+        setContentPane(pestanas);
+
+        JMenuBar barra = new JMenuBar();
+        JMenu menu = new JMenu("Perfil");
+        JMenuItem cambiar = new JMenuItem("Cambiar de perfil…");
+        cambiar.addActionListener(e -> cambiarPerfil(ctx));
+        menu.add(cambiar);
+        barra.add(menu);
+        setJMenuBar(barra);
+
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                if (!cerrarBaseAlSalir) return;
+                try {
+                    ctx.db.close();
+                } catch (Exception ignored) {
+                    // se está cerrando el programa
+                }
+            }
+        });
+        setSize(1280, 820);
+        setLocationRelativeTo(null);
+    }
+
+    private void abrirMesociclo(Mesociclo m) {
+        panelMesociclo.mostrar(m.id());
+        pestanas.setSelectedComponent(panelMesociclo);
+    }
+
+    private void cambiarPerfil(Contexto ctx) {
+        try {
+            Perfil p = SelectorPerfil.elegir(new PerfilRepo(ctx.db), true);
+            if (p == null || p.id() == ctx.perfil.id()) return;
+            new VentanaPrincipal(new Contexto(ctx.db, p)).setVisible(true);
+            cerrarBaseAlSalir = false; // la base sigue abierta: la usa la ventana nueva
+            dispose();
+        } catch (Exception e) {
+            Contexto.error(this, e);
+        }
+    }
+
+    /** Abre la base, elige el perfil y muestra la ventana. */
+    public static void iniciar() {
+        try {
+            Database db = Database.abrir(Database.rutaPorDefecto());
+            if (db.seRestauro()) {
+                JOptionPane.showMessageDialog(null, "El archivo de datos estaba dañado: se guardó una copia como "
+                                + Database.rutaPorDefecto().getFileName() + ".bak-… y se empezó uno nuevo.",
+                        "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+            Perfil p = SelectorPerfil.elegir(new PerfilRepo(db), false);
+            if (p == null) {
+                db.close();
+                return;
+            }
+            new VentanaPrincipal(new Contexto(db, p)).setVisible(true);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "No se pudo abrir la base de datos en " + Database.rutaPorDefecto()
+                    + ":\n" + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}

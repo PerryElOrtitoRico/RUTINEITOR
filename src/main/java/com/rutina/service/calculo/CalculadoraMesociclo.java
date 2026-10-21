@@ -107,10 +107,6 @@ public final class CalculadoraMesociclo {
         for (int k : idxs) diasConTipo.add(bloques.get(k).dia());
         double[] pesos = DistribucionVolumen.pesosDias(m, dias, diasConTipo);
 
-        // Apariciones de cada ejercicio, en orden de día: el arrastre corre por ejercicio y zona
-        Map<Long, List<Integer>> porEjercicio = new LinkedHashMap<>();
-        for (int k : idxs) porEjercicio.computeIfAbsent(bloques.get(k).ejercicioId(), x -> new ArrayList<>()).add(k);
-
         for (int i = 0; i < planes.size(); i++) {
             PlanMicro plan = planes.get(i);
             int[] zonas = DistribucionZonas.repsPorZona(m, plan.volumen(), plan.imr());
@@ -137,18 +133,17 @@ public final class CalculadoraMesociclo {
                 }
             }
 
+            // Series de cada bloque: el resto de una zona pasa a la zona siguiente del mismo día,
+            // así el volumen del día no se dispara cuando cada zona tiene pocas repeticiones
             Map<Integer, Map<Zona, List<List<Integer>>>> series = new LinkedHashMap<>();
-            for (int k : idxs) series.put(k, new EnumMap<>(Zona.class));
-            for (List<Integer> apariciones : porEjercicio.values()) {
-                Ejercicio e = ejs.get(apariciones.get(0));
-                for (int z = 0; z < ZONAS.length; z++) {
-                    int[] arr = new int[apariciones.size()];
-                    for (int a = 0; a < arr.length; a++) arr[a] = repsBloqueZona[apariciones.get(a)][z];
-                    SeriesZona sz = GeneradorSeries.generar(arr, e.repsPorSerie(ZONAS[z], m));
-                    for (int a = 0; a < arr.length; a++) {
-                        series.get(apariciones.get(a)).put(ZONAS[z], List.of(sz.porDia().get(a)));
-                    }
-                }
+            for (int k : idxs) {
+                Ejercicio e = ejs.get(k);
+                int[] s = new int[ZONAS.length];
+                for (int z = 0; z < ZONAS.length; z++) s[z] = e.repsPorSerie(ZONAS[z], m);
+                SeriesZona sz = GeneradorSeries.generar(repsBloqueZona[k], s);
+                Map<Zona, List<List<Integer>>> porZona = new EnumMap<>(Zona.class);
+                for (int z = 0; z < ZONAS.length; z++) porZona.put(ZONAS[z], List.of(sz.porPaso().get(z)));
+                series.put(k, porZona);
             }
 
             int totalReps = 0;

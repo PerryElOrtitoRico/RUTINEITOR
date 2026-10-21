@@ -44,6 +44,13 @@
             <version>1.4.2</version>
         </dependency>
 
+        <!-- Gráficos (Swing no trae) -->
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.5.5</version>
+        </dependency>
+
         <!-- Tests unitarios -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

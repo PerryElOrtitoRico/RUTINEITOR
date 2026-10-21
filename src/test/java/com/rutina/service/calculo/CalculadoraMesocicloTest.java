@@ -43,10 +43,10 @@ class CalculadoraMesocicloTest {
         var sem = r.bloques().get(0).semanas().get(0);
         assertEquals(List.of(List.of(3, 3, 3, 3, 3, 3)), sem.seriesPorZona().get(Zona.Z80));
         assertEquals(List.of(List.of(4, 4)), sem.seriesPorZona().get(Zona.Z55));
-        assertEquals(86, sem.volumen());
+        assertEquals(80, sem.volumen());
         assertEquals(80, r.planificado().stream().filter(p -> p.tipo() == Tipo.FUERZA && p.microciclo() == 1)
                 .findFirst().get().volumen());
-        assertEquals(86, r.real().stream().filter(p -> p.tipo() == Tipo.FUERZA && p.microciclo() == 1)
+        assertEquals(80, r.real().stream().filter(p -> p.tipo() == Tipo.FUERZA && p.microciclo() == 1)
                 .findFirst().get().volumen());
     }
 
@@ -55,7 +55,7 @@ class CalculadoraMesocicloTest {
         var c = calc().contadores().stream()
                 .filter(x -> x.tipo() == Tipo.FUERZA && x.microciclo() == 1 && x.dia() == 1).findFirst().get();
         assertEquals(80, c.planificado());
-        assertEquals(86, c.asignado());
+        assertEquals(80, c.asignado());
         assertEquals(0, c.sinAsignar());
     }
 
@@ -96,7 +96,25 @@ class CalculadoraMesocicloTest {
         var conTecho = r.bloques().get(0).semanas().get(0).seriesPorZona();
         var sinTecho = r.bloques().get(1).semanas().get(0).seriesPorZona();
         assertTrue(conTecho.get(Zona.Z90).get(0).isEmpty());
-        assertEquals(List.of(List.of(2, 2, 2)), sinTecho.get(Zona.Z90)); // 5 reps de 90 % → 3 series de 2
+        // las 5 reps de 90 % van todas al que no tiene techo (± el arrastre de la zona anterior)
+        int reps90 = sinTecho.get(Zona.Z90).get(0).stream().mapToInt(Integer::intValue).sum();
+        assertTrue(reps90 >= 3 && reps90 <= 7, "reps al 90 %: " + reps90);
+        assertTrue(sinTecho.get(Zona.Z90).get(0).stream().allMatch(s -> s == 2));
+    }
+
+    @Test
+    void volumenDelDiaNoSeDisparaConNumerosChicos() throws Exception {
+        // potencia 250 @ 72, 5A: dos ejercicios 50/50 solo el día 2 y otro los días 1 y 3 (caso real del usuario)
+        var pot = new java.util.HashMap<Long, Ejercicio>();
+        for (long i = 1; i <= 3; i++) {
+            pot.put(i, new Ejercicio(i, 1, "Pot " + i, Tipo.POTENCIA, 100.0, null, 100, Map.of(), null, 0, true));
+        }
+        var mes = new Mesociclo(0, 1, LocalDate.of(2026, 10, 26), 5, new ParametrosTipo(250, 72), new ParametrosTipo(0, 70),
+                'A', 3, Map.of(), List.of(new Bloque(1, 1, 1L, 100), new Bloque(2, 1, 2L, 50), new Bloque(2, 2, 3L, 50),
+                new Bloque(3, 1, 1L, 100)), "", "", Map.of());
+        for (Contador c : CalculadoraMesociclo.calcular(M, mes, pot).contadores()) {
+            assertTrue(Math.abs(c.asignado() - c.planificado()) <= 4, c.toString());
+        }
     }
 
     @Test
