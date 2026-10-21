@@ -40,6 +40,7 @@ final class FichaEjercicio extends JDialog {
     private final JTextField objetivo = new JTextField(6);
     private final JSpinner techo = new JSpinner(new SpinnerNumberModel(100, 55, 100, 5));
     private final Map<Zona, Integer> propias;
+    private JTable tablaReps;
     private boolean guardado;
 
     FichaEjercicio(Component padre, Contexto ctx, Ejercicio e) {
@@ -154,6 +155,8 @@ final class FichaEjercicio extends JDialog {
             }
         };
         JTable t = new JTable(modelo);
+        tablaReps = t;
+        t.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
         t.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable tb, Object v, boolean sel, boolean foco, int r, int c) {
@@ -175,6 +178,7 @@ final class FichaEjercicio extends JDialog {
     }
 
     private void guardar() {
+        if (tablaReps != null && tablaReps.isEditing()) tablaReps.getCellEditor().stopCellEditing();
         try {
             Double nuevoRm = numero(rm.getText(), "1RM");
             Double nuevoObj = numero(objetivo.getText(), "1RM objetivo");

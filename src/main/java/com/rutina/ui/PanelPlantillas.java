@@ -31,6 +31,8 @@ final class PanelPlantillas extends JPanel {
     private Metodologia m;
     private final JTabbedPane tabs = new JTabbedPane();
     private final JComboBox<String> incremento = new JComboBox<>(new String[]{"1 kg", "2,5 kg"});
+    /** Tablas visibles: al guardar se confirma la celda que se esté editando. */
+    private static final java.util.List<JTable> TABLAS = new ArrayList<>();
 
     PanelPlantillas(Contexto ctx) {
         super(new BorderLayout());
@@ -75,6 +77,9 @@ final class PanelPlantillas extends JPanel {
     }
 
     private void guardar() {
+        for (JTable t : TABLAS) {
+            if (t.isEditing()) t.getCellEditor().stopCellEditing();
+        }
         List<String> problemas = new ArrayList<>();
         m.variantes().forEach((k, v) -> {
             double s = Arrays.stream(v.volPct()).sum();
@@ -165,6 +170,9 @@ final class PanelPlantillas extends JPanel {
         };
         JTable t = new JTable(modelo);
         t.setCellSelectionEnabled(true);
+        t.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+        TABLAS.removeIf(x -> !x.isDisplayable());
+        TABLAS.add(t);
         return new JScrollPane(t);
     }
 

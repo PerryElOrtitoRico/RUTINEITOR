@@ -33,6 +33,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -118,7 +120,10 @@ final class PanelMesociclo extends JPanel {
         FocusAdapter guardarTextos = new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
-                if (actual != null) guardar(con(actual.bloques(), actual.aproximaciones()));
+                // solo si cambió, y no por pérdidas temporales de foco (otra ventana, un diálogo) ni al cerrar
+                if (actual == null || e.isTemporary() || !isShowing()) return;
+                if (calentamiento.getText().equals(actual.calentamiento()) && auxiliares.getText().equals(actual.auxiliares())) return;
+                guardar(con(actual.bloques(), actual.aproximaciones()));
             }
         };
         calentamiento.addFocusListener(guardarTextos);
@@ -266,7 +271,10 @@ final class PanelMesociclo extends JPanel {
         if (compleja) {
             JSpinner pct = new JSpinner(new SpinnerNumberModel(Math.round(b.pctBolsa() * 10) / 10.0, 0.0, 100.0, 5.0));
             pct.setPreferredSize(new Dimension(70, pct.getPreferredSize().height));
-            pct.addChangeListener(ev -> cambiarPct(b, (Double) pct.getValue()));
+            // se guarda medio segundo después del último cambio (mantener apretada la flecha no guarda en cada paso)
+            Timer espera = new Timer(500, ev -> cambiarPct(b.dia(), b.posicion(), (Double) pct.getValue()));
+            espera.setRepeats(false);
+            pct.addChangeListener(ev -> espera.restart());
             acciones.add(new JLabel("% de la bolsa:"));
             acciones.add(pct);
         }
@@ -347,7 +355,8 @@ final class PanelMesociclo extends JPanel {
     private void guardar(Mesociclo m) {
         try {
             actual = ctx.mesociclos.guardar(m);
-            ctx.cambio(); // refresca Macrociclo y vuelve a dibujar esta pestaña
+            // se redibuja después: si se hiciera acá, se destruiría el componente cuyo evento se está atendiendo
+            SwingUtilities.invokeLater(ctx::cambio);
         } catch (Exception e) {
             Contexto.error(this, e);
         }
@@ -416,9 +425,12 @@ final class PanelMesociclo extends JPanel {
         guardar(con(Armado.pctIguales(m, ejs), aprox));
     }
 
-    private void cambiarPct(Bloque b, double pct) {
+    private void cambiarPct(int dia, int posicion, double pct) {
+        if (actual == null) return;
         List<Bloque> bloques = new ArrayList<>();
-        for (Bloque x : actual.bloques()) bloques.add(x.equals(b) ? new Bloque(x.dia(), x.posicion(), x.ejercicioId(), pct) : x);
+        for (Bloque x : actual.bloques()) {
+            bloques.add(x.dia() == dia && x.posicion() == posicion ? new Bloque(dia, posicion, x.ejercicioId(), pct) : x);
+        }
         guardar(con(bloques, actual.aproximaciones()));
     }
 
