@@ -23,7 +23,7 @@ Las mismas de T09.
   - `start_url: "./"`, `scope: "./"`, `display: "standalone"`;
   - `background_color` y `theme_color` a elección;
   - `icons` con `icono.svg` (`"sizes": "any"`, `"type": "image/svg+xml"`).
-- `icono.svg`: un ícono simple (una pesa o una "R"), cuadrado de 512 × 512.
+- `icono.svg`: **copiá** `docs/icono/rutineitor.svg` (el ícono del programa de la PC); no dibujes uno nuevo.
 - `index.html`: `<link rel="manifest" href="manifest.webmanifest">`, `<meta name="theme-color" …>` y, al cargar, `navigator.serviceWorker.register("sw.js")` si existe `serviceWorker` (dentro de `try/catch`, y sin romper nada si se abre como `file://`).
 - `sw.js`:
   - en `install`, guarda en `caches` los archivos `./`, `./index.html`, `./logica.js`, `./manifest.webmanifest` y `./icono.svg` (cache con nombre versionado, por ejemplo `rutineitor-v1`);

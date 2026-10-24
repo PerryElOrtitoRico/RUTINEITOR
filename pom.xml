@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.rutina</groupId>
-    <artifactId>rutina</artifactId>
+    <artifactId>rutineitor</artifactId>
     <version>1.0.0</version>
-    <name>Generador de rutinas</name>
+    <name>RUTINEITOR</name>
     <description>Programación de mesociclos de sobrecarga con el método cubano</description>
 
     <properties>
@@ -79,6 +79,9 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.6.0</version>
                 <configuration>
+                    <!-- ejecutable: target/rutineitor.jar -->
+                    <finalName>rutineitor</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
                             <mainClass>com.rutina.Main</mainClass>

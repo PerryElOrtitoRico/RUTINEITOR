@@ -1,4 +1,4 @@
-# Generador de rutinas
+# RUTINEITOR
 
 Programa de escritorio para programar mesociclos de sobrecarga con el **método cubano de distribución de repeticiones** (H. Anselmi, *Actualizaciones sobre el entrenamiento de la potencia*, cap. 8). Reemplaza la planilla `Rutina.xlsx`: a partir del volumen y la intensidad que planificás para cada mesociclo, calcula solo las series × repeticiones × kg de cada ejercicio, con series parejas (escalera de peso) y contadores que muestran cuánto se aparta de la teoría. Exporta un PDF con el formato de la planilla del entrenador para llevar al gimnasio.
 
@@ -22,7 +22,7 @@ mvn package
 ```
 
 ```bash
-java -jar target/rutina-1.0.0-jar-with-dependencies.jar
+java -jar target/rutineitor.jar
 ```
 
 ```bash

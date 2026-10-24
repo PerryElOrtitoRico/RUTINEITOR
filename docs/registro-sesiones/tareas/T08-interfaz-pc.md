@@ -60,7 +60,7 @@ De tareas anteriores: `ArmadorPlan.armar(perfil, mes, res, m)`, `JsonRegistro.es
    - si `analizar` lanza una excepción, mostrá su mensaje en el label de avisos que ya existe (`avisos.setText(...)`) en vez de la tabla.
 
 ## Prueba manual (anotá el resultado)
-1. `mvn -q package` y abrir `java -jar target/rutina-1.0.0-jar-with-dependencies.jar`.
+1. `mvn -q package` y abrir `java -jar target/rutineitor.jar`.
 2. Elegir un mesociclo armado y tocar "Plan al celular": se genera el `.json` y, abierto con un editor, tiene la forma de la sección 5.
 3. Editar a mano una copia de `docs/registro-sesiones/ejemplos/registro-ejemplo.json` para que su `mesocicloId` sea el del mesociclo elegido y las etiquetas coincidan con su plan, e importarla: la pestaña "Registro" muestra las filas.
 4. Importar un registro con otro `mesocicloId`: aparece el error y la tabla no cambia.

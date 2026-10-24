@@ -23,7 +23,8 @@ public final class VentanaPrincipal extends JFrame {
     private boolean cerrarBaseAlSalir = true;
 
     private VentanaPrincipal(Contexto ctx) {
-        super("Generador de rutinas — " + ctx.perfil.nombre());
+        super("RUTINEITOR — " + ctx.perfil.nombre());
+        setIconImages(iconos());
         panelMesociclo = new PanelMesociclo(ctx);
         pestanas.addTab("Ejercicios", new PanelEjercicios(ctx));
         pestanas.addTab("Plantillas", new PanelPlantillas(ctx));
@@ -71,6 +72,16 @@ public final class VentanaPrincipal extends JFrame {
         } catch (Exception e) {
             Contexto.error(this, e);
         }
+    }
+
+    /** El ícono en varios tamaños (barra de tareas, alt+tab, título); si falta alguno, se omite. */
+    static java.util.List<java.awt.Image> iconos() {
+        java.util.List<java.awt.Image> res = new java.util.ArrayList<>();
+        for (int s : new int[]{16, 32, 48, 64, 128, 256}) {
+            java.net.URL url = VentanaPrincipal.class.getResource("/icono/rutineitor-" + s + ".png");
+            if (url != null) res.add(new javax.swing.ImageIcon(url).getImage());
+        }
+        return res;
     }
 
     /** Abre la base, elige el perfil y muestra la ventana. */
