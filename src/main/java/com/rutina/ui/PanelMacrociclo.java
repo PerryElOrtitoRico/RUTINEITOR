@@ -200,7 +200,7 @@ final class PanelMacrociclo extends JPanel {
                     if (vol > 0) real.add(new PuntoGrafico(t, i, vol, suma / vol));
                 }
             } catch (Exception ignored) {
-                // un mesociclo con parámetros inválidos se ve en su pestaña; acá solo falta su "real"
+                // un mesociclo con parámetros inválidos se ve en su pestaña; acá solo falta su "planilla"
             }
         }
         grafico.removeAll();

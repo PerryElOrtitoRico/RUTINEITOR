@@ -155,6 +155,8 @@ Nombre sugerido `registro-<perfil>-<inicio>.json`. Ejemplo en `ejemplos/registro
 
 ## 7. Qué calcula la PC con el registro
 
+Nombres que ve el usuario: **Planilla** = lo que dice el PDF (las series planificadas de este plan); **Entrenado** = lo que hizo (el registro). En el código los campos se llaman `…Plan` y `…Real`.
+
 Para cada sesión anotada y cada `tipo` presente en ella:
 
 - **Volumen planificado** = Σ reps de las series planificadas de esos ejercicios.

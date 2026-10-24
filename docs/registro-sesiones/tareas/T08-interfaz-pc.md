@@ -7,7 +7,7 @@ Las mismas de T01: Java 21, Maven, nombres y comentarios en español, sin depend
 En la pestaña **Mesociclo**:
 1. un botón **"Plan al celular"** que guarda el JSON del plan;
 2. un botón **"Importar registro"** que lee el JSON del celular y lo guarda;
-3. una pestaña nueva, **"Registro"**, en el panel de la derecha, con la tabla de planificado vs real.
+3. una pestaña nueva, **"Registro"**, en el panel de la derecha, con la tabla de planilla vs entrenado.
 
 ## Código que ya existe (lo vas a modificar)
 `src/main/java/com/rutina/ui/Contexto.java`: guarda lo que comparten las pestañas.
@@ -50,7 +50,7 @@ De tareas anteriores: `ArmadorPlan.armar(perfil, mes, res, m)`, `JsonRegistro.es
    - si `registro.mesocicloId() != actual.id()`, mostrá un error que diga que el registro es de otro mesociclo y no guardes;
    - si es del mismo, `ctx.registros.guardar(registro)` y `recalcular()`.
 3. **Pestaña "Registro"** (después de "Gráfico"):
-   - un `JTable` con las columnas `Micro, Día, Fecha, Descanso, Final, Esfuerzo, Tipo, Vol plan, Vol real, IMR plan, IMR real`;
+   - un `JTable` con las columnas `Micro, Día, Fecha, Descanso, Final, Esfuerzo, Tipo, Vol planilla, Vol entrenado, IMR planilla, IMR entrenado`;
    - una fila por cada `ComparacionTipo` de cada `ResumenSesion`;
    - descanso y final se muestran como texto de la escala (por ejemplo `5 · Bien descansado`), con `EscalaDescanso.deValor(...)` y `EscalaFinal.deValor(...)`;
    - los IMR con 1 decimal; los `null`, como celda vacía.

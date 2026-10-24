@@ -64,7 +64,7 @@ final class PanelMesociclo extends JPanel {
     private final JComboBox<String> dias = new JComboBox<>(new String[]{"—", "3", "4", "5"});
     private final JPanel grilla = new JPanel();
     private final DefaultTableModel contadores = new DefaultTableModel(
-            new Object[]{"Tipo", "Micro", "Día", "Planificado", "Asignado", "Diferencia", "Sin asignar"}, 0) {
+            new Object[]{"Tipo", "Micro", "Día", "Teoría", "Planilla", "Diferencia", "Sin asignar"}, 0) {
         @Override
         public boolean isCellEditable(int r, int c) {
             return false;

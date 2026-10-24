@@ -49,12 +49,12 @@ public final class Graficos {
         return panel(chart);
     }
 
-    /** Volumen en barras e IMR en líneas (eje derecho), planificado vs real. */
+    /** Volumen en barras e IMR en líneas (eje derecho): teoría (tablas) vs planilla (series del PDF). */
     public static JPanel volumenIntensidad(List<PuntoGrafico> plan, List<PuntoGrafico> real, String prefijo) {
         DefaultCategoryDataset vol = new DefaultCategoryDataset();
         DefaultCategoryDataset imr = new DefaultCategoryDataset();
-        agregar(vol, imr, plan, "plan", prefijo);
-        agregar(vol, imr, real, "real", prefijo);
+        agregar(vol, imr, plan, "teoría", prefijo);
+        agregar(vol, imr, real, "planilla", prefijo);
         JFreeChart chart = ChartFactory.createBarChart("Volumen e intensidad", "", "Repeticiones", vol,
                 PlotOrientation.VERTICAL, true, true, false);
         CategoryPlot plot = chart.getCategoryPlot();
