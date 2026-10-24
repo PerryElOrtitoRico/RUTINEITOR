@@ -71,6 +71,7 @@ final class PanelMesociclo extends JPanel {
         }
     };
     private final JPanel grafico = new JPanel(new BorderLayout());
+    private final JPanel pliometria = new JPanel();
     private final JTextArea calentamiento = new JTextArea(3, 30);
     private final JTextArea auxiliares = new JTextArea(3, 30);
     private final JLabel avisos = new JLabel(" ");
@@ -113,6 +114,10 @@ final class PanelMesociclo extends JPanel {
         JTabbedPane derecha = new JTabbedPane();
         derecha.addTab("Contadores", new JScrollPane(new JTable(contadores)));
         derecha.addTab("Gráfico", grafico);
+        pliometria.setLayout(new BoxLayout(pliometria, BoxLayout.Y_AXIS));
+        JPanel envolturaPlio = new JPanel(new BorderLayout());
+        envolturaPlio.add(pliometria, BorderLayout.NORTH);
+        derecha.addTab("Pliometría", new JScrollPane(envolturaPlio));
         JPanel textos = new JPanel(new GridLayout(2, 1, 4, 4));
         textos.add(conTitulo(calentamiento, "Calentamiento"));
         textos.add(conTitulo(auxiliares, "Auxiliares"));
@@ -226,7 +231,73 @@ final class PanelMesociclo extends JPanel {
         }
         grafico.revalidate();
         grafico.repaint();
+        dibujarPliometria();
         dibujarGrilla();
+    }
+
+    /** Planes de pliometría que caen en las fechas del mesociclo (se planifican en Macrociclo). */
+    private void dibujarPliometria() {
+        pliometria.removeAll();
+        if (actual != null) {
+            try {
+                var planes = Armado.planesDelMesociclo(ctx.metodologia(), actual, ctx.planes.listar(ctx.perfil.id()),
+                        ctx.ejercicios.listar(ctx.perfil.id()));
+                if (planes.isEmpty()) {
+                    pliometria.add(new JLabel("<html>No hay pliometría en las fechas de este mesociclo.<br>"
+                            + "Los planes se crean, editan y borran en la pestaña <b>Macrociclo</b>.</html>"));
+                }
+                for (var pc : planes) pliometria.add(tablaPlio(pc));
+            } catch (Exception e) {
+                pliometria.add(new JLabel("No se pudo cargar la pliometría: " + e.getMessage()));
+            }
+        }
+        pliometria.revalidate();
+        pliometria.repaint();
+    }
+
+    private JPanel tablaPlio(com.rutina.pdf.PlanConDias pc) {
+        int semanas = pc.semanas().size();
+        Object[] cols = new Object[semanas + 2];
+        cols[0] = "Día";
+        cols[1] = "Ejercicio";
+        for (int w = 1; w <= semanas; w++) {
+            cols[w + 1] = "S" + w + (pc.semanasDentroDelMesociclo().contains(w) ? "" : " (fuera)");
+        }
+        DefaultTableModel m = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+        int dias = pc.semanas().get(0).size();
+        for (int d = 0; d < dias; d++) {
+            List<String> ejercicios = pc.semanas().get(0).get(d).ejercicios();
+            if (ejercicios.isEmpty()) {
+                Object[] fila = new Object[semanas + 2];
+                fila[0] = d + 1;
+                fila[1] = "(sin ejercicios: cargalos en Ejercicios → Pliometría)";
+                m.addRow(fila);
+            }
+            for (int k = 0; k < ejercicios.size(); k++) {
+                Object[] fila = new Object[semanas + 2];
+                fila[0] = k == 0 ? d + 1 : "";
+                fila[1] = ejercicios.get(k);
+                for (int w = 0; w < semanas; w++) {
+                    fila[w + 2] = pc.semanas().get(w).get(d).series() + " x " + com.rutina.service.calculo.Pliometria.SALTOS_POR_SERIE;
+                }
+                m.addRow(fila);
+            }
+        }
+        JTable t = new JTable(m);
+        t.getColumnModel().getColumn(0).setMaxWidth(40);
+        t.getColumnModel().getColumn(1).setPreferredWidth(260);
+        t.setPreferredScrollableViewportSize(t.getPreferredSize());
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBorder(BorderFactory.createTitledBorder("Nivel " + pc.plan().nivel() + " · desde "
+                + pc.plan().inicio().format(FECHA)));
+        p.add(t.getTableHeader(), BorderLayout.NORTH);
+        p.add(t, BorderLayout.CENTER);
+        return p;
     }
 
     private void dibujarGrilla() {

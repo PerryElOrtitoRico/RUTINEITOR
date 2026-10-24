@@ -43,6 +43,16 @@ class ArmadoTest {
     }
 
     @Test
+    void planQueSeSuperpone() {
+        var planes = List.of(new PlanPliometria(1, 1, 2, LocalDate.of(2026, 10, 19)),   // 19/10 al 15/11
+                new PlanPliometria(2, 1, 1, LocalDate.of(2026, 12, 21)));
+        assertEquals(1L, Armado.planQueSeSuperpone(new PlanPliometria(0, 1, 1, LocalDate.of(2026, 11, 9)), planes).id());
+        assertNull(Armado.planQueSeSuperpone(new PlanPliometria(0, 1, 1, LocalDate.of(2026, 11, 16)), planes)); // empieza justo al terminar
+        assertNull(Armado.planQueSeSuperpone(new PlanPliometria(1, 1, 3, LocalDate.of(2026, 10, 26)), planes)); // editarse a sí mismo
+        assertEquals(2L, Armado.planQueSeSuperpone(new PlanPliometria(1, 1, 3, LocalDate.of(2026, 12, 7)), planes).id());
+    }
+
+    @Test
     void moverIntercambiaConElVecinoDelMismoDia() {
         var bloques = List.of(new Bloque(1, 1, 10L, 100), new Bloque(1, 2, 20L, 100), new Bloque(2, 1, 30L, 100));
         var res = Armado.mover(bloques, 1, 2, -1);

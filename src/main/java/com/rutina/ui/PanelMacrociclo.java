@@ -62,6 +62,8 @@ final class PanelMacrociclo extends JPanel {
     private final List<LocalDate> lunes = new ArrayList<>();
     private List<Mesociclo> mesociclos = List.of();
     private List<PlanPliometria> planes = List.of();
+    private final javax.swing.DefaultListModel<PlanPliometria> modeloPlanes = new javax.swing.DefaultListModel<>();
+    private final javax.swing.JList<PlanPliometria> listaPlanes = new javax.swing.JList<>(modeloPlanes);
 
     PanelMacrociclo(Contexto ctx, Consumer<Mesociclo> abrir) {
         super(new BorderLayout());
@@ -77,22 +79,21 @@ final class PanelMacrociclo extends JPanel {
         boton(arriba, "Editar", this::editarMesociclo);
         boton(arriba, "Borrar", this::borrarMesociclo);
         boton(arriba, "Armar →", this::armar);
-        arriba.add(new JLabel("   |   "));
-        boton(arriba, "Nuevo plan de pliometría", this::nuevoPlan);
-        boton(arriba, "Borrar plan", this::borrarPlan);
         add(arriba, BorderLayout.NORTH);
 
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabla.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) armar();
+                if (e.getClickCount() == 2) dobleClick();
             }
         });
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(tabla), grafico);
         split.setResizeWeight(0.6);
-        add(split, BorderLayout.CENTER);
-        add(new JLabel("  Doble click en una semana de un mesociclo para armarlo."), BorderLayout.SOUTH);
+        JSplitPane conPlanes = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, split, panelPlanes());
+        conPlanes.setResizeWeight(1.0);
+        add(conPlanes, BorderLayout.CENTER);
+        add(new JLabel("  Doble click en una semana: arma su mesociclo o, si solo tiene pliometría, edita ese plan."), BorderLayout.SOUTH);
         ctx.alCambiar(this::refrescar);
         refrescar();
     }
@@ -107,6 +108,14 @@ final class PanelMacrociclo extends JPanel {
         try {
             mesociclos = ctx.mesociclos.listar(ctx.perfil.id());
             planes = ctx.planes.listar(ctx.perfil.id());
+            PlanPliometria elegido = listaPlanes.getSelectedValue();
+            modeloPlanes.clear();
+            planes.forEach(modeloPlanes::addElement);
+            if (elegido != null) {
+                for (int i = 0; i < modeloPlanes.size(); i++) {
+                    if (modeloPlanes.get(i).id() == elegido.id()) listaPlanes.setSelectedIndex(i);
+                }
+            }
         } catch (Exception e) {
             Contexto.error(this, e);
             return;
@@ -308,43 +317,106 @@ final class PanelMacrociclo extends JPanel {
         if (mc != null) abrir.accept(mc);
     }
 
+    // ---- planes de pliometría -----------------------------------------------------------------------------------
+
+    private JPanel panelPlanes() {
+        listaPlanes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        listaPlanes.setCellRenderer((l, p, i, sel, foco) -> {
+            JLabel lb = new JLabel("<html><b>Nivel " + p.nivel() + "</b><br>" + p.inicio().format(FECHA) + " → "
+                    + p.inicio().plusWeeks(4).minusDays(1).format(FECHA) + "</html>");
+            lb.setOpaque(true);
+            lb.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 6, 4, 6));
+            lb.setBackground(sel ? l.getSelectionBackground() : l.getBackground());
+            lb.setForeground(sel ? l.getSelectionForeground() : l.getForeground());
+            return lb;
+        });
+        listaPlanes.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && listaPlanes.getSelectedValue() != null) dialogoPlan(listaPlanes.getSelectedValue());
+            }
+        });
+        JPanel botones = new JPanel(new GridLayout(1, 3, 4, 4));
+        boton(botones, "Nuevo", this::nuevoPlan);
+        boton(botones, "Editar", () -> {
+            PlanPliometria p = planElegido();
+            if (p != null) dialogoPlan(p);
+        });
+        boton(botones, "Borrar", this::borrarPlan);
+        JPanel p = new JPanel(new BorderLayout(4, 4));
+        p.setBorder(javax.swing.BorderFactory.createTitledBorder("Planes de pliometría"));
+        p.add(new JScrollPane(listaPlanes), BorderLayout.CENTER);
+        p.add(botones, BorderLayout.SOUTH);
+        p.setPreferredSize(new java.awt.Dimension(250, 200));
+        return p;
+    }
+
+    /** El plan elegido en la lista o, si no hay, el de la semana elegida en el calendario. */
+    private PlanPliometria planElegido() {
+        PlanPliometria p = listaPlanes.getSelectedValue();
+        if (p == null) {
+            LocalDate d = semanaSeleccionada();
+            p = d == null ? null : planEn(d);
+        }
+        if (p == null) JOptionPane.showMessageDialog(this, "Elegí un plan en la lista \"Planes de pliometría\".");
+        return p;
+    }
+
+    private void dobleClick() {
+        LocalDate d = semanaSeleccionada();
+        if (d == null) return;
+        Mesociclo mc = mesocicloEn(d);
+        if (mc != null) {
+            abrir.accept(mc);
+            return;
+        }
+        PlanPliometria p = planEn(d);
+        if (p != null) dialogoPlan(p);
+    }
+
     private void nuevoPlan() {
         LocalDate d = semanaSeleccionada();
         if (d == null) d = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        dialogoPlan(new PlanPliometria(0, ctx.perfil.id(), 1, d));
+    }
+
+    /** Crear (id 0) o editar un plan: nivel y fecha de inicio. */
+    private void dialogoPlan(PlanPliometria plan) {
         JComboBox<Integer> nivel = new JComboBox<>(new Integer[]{1, 2, 3});
-        JTextField inicio = new JTextField(d.format(FECHA), 10);
+        nivel.setSelectedItem(plan.nivel());
+        JTextField inicio = new JTextField(plan.inicio().format(FECHA), 10);
         JPanel p = new JPanel(new GridLayout(0, 2, 6, 6));
         p.add(new JLabel("Nivel"));
         p.add(nivel);
         p.add(new JLabel("Inicio (lunes, dd/mm/aaaa)"));
         p.add(inicio);
-        if (JOptionPane.showConfirmDialog(this, p, "Nuevo plan de pliometría (4 semanas)", JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) return;
-        try {
-            LocalDate ini = LocalDate.parse(inicio.getText().trim(), FECHA).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-            for (PlanPliometria o : planes) {
-                if (ini.isBefore(o.inicio().plusWeeks(4)) && o.inicio().isBefore(ini.plusWeeks(4))) {
-                    throw new IllegalArgumentException("Se superpone con el plan que empieza el " + o.inicio().format(FECHA) + ".");
+        String titulo = plan.id() == 0 ? "Nuevo plan de pliometría (4 semanas)" : "Editar plan de pliometría";
+        while (true) {
+            if (JOptionPane.showConfirmDialog(this, p, titulo, JOptionPane.OK_CANCEL_OPTION,
+                    JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) return;
+            try {
+                LocalDate ini = LocalDate.parse(inicio.getText().trim(), FECHA).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                PlanPliometria nuevo = new PlanPliometria(plan.id(), plan.perfilId(), (Integer) nivel.getSelectedItem(), ini);
+                PlanPliometria choca = com.rutina.service.Armado.planQueSeSuperpone(nuevo, planes);
+                if (choca != null) {
+                    throw new IllegalArgumentException("Se superpone con el plan que empieza el " + choca.inicio().format(FECHA) + ".");
                 }
+                ctx.planes.guardar(nuevo);
+                ctx.cambio();
+                return;
+            } catch (java.time.format.DateTimeParseException e) {
+                JOptionPane.showMessageDialog(this, "Fecha inválida: usá dd/mm/aaaa.");
+            } catch (Exception e) {
+                Contexto.error(this, e);
             }
-            ctx.planes.guardar(new PlanPliometria(0, ctx.perfil.id(), (Integer) nivel.getSelectedItem(), ini));
-            ctx.cambio();
-        } catch (java.time.format.DateTimeParseException e) {
-            JOptionPane.showMessageDialog(this, "Fecha inválida: usá dd/mm/aaaa.");
-        } catch (Exception e) {
-            Contexto.error(this, e);
         }
     }
 
     private void borrarPlan() {
-        LocalDate d = semanaSeleccionada();
-        PlanPliometria p = d == null ? null : planEn(d);
-        if (p == null) {
-            JOptionPane.showMessageDialog(this, "Elegí en el calendario una semana con pliometría.");
-            return;
-        }
-        if (JOptionPane.showConfirmDialog(this, "¿Borrar el plan de pliometría del " + p.inicio().format(FECHA) + "?",
-                "Borrar", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
+        PlanPliometria p = planElegido();
+        if (p == null) return;
+        if (JOptionPane.showConfirmDialog(this, "¿Borrar el plan de pliometría nivel " + p.nivel() + " del "
+                + p.inicio().format(FECHA) + "?", "Borrar", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
         try {
             ctx.planes.borrar(p.id());
             ctx.cambio();

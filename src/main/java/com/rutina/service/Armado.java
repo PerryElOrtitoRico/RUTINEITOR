@@ -39,6 +39,19 @@ public final class Armado {
         return res;
     }
 
+    /**
+     * El primer plan de {@code planes} (sin contar el de mismo id que {@code plan}) cuyas 4 semanas se cruzan
+     * con las de {@code plan}; null si no se cruza con ninguno.
+     */
+    public static PlanPliometria planQueSeSuperpone(PlanPliometria plan, List<PlanPliometria> planes) {
+        LocalDate fin = plan.inicio().plusWeeks(4);
+        for (PlanPliometria o : planes) {
+            if (plan.id() != 0 && o.id() == plan.id()) continue;
+            if (plan.inicio().isBefore(o.inicio().plusWeeks(4)) && o.inicio().isBefore(fin)) return o;
+        }
+        return null;
+    }
+
     /** Reparte la bolsa en partes iguales entre los bloques complejos del mismo tipo y día. */
     public static List<Bloque> pctIguales(Mesociclo mes, Map<Long, Ejercicio> ejercicios) {
         List<Bloque> res = new ArrayList<>();
