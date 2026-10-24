@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pruebas de logica.js</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 16px; background: #fff; color: #222; }
+  .ok { color: #1a7f37; } .mal { color: #c62828; } li { margin: 2px 0; }
+  #resumen { font-size: 1.3em; font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>Pruebas ocultas de <code>celular/logica.js</code> (T09)</h1>
+<p id="resumen">Corriendo…</p>
+<ul id="lista"></ul>
+<script src="../../../../celular/logica.js"></script>
+<script>
+"use strict";
+const resultados = [];
+function prueba(nombre, fn) {
+  try { fn(); resultados.push([true, nombre]); }
+  catch (e) { resultados.push([false, nombre + " → " + (e && e.message ? e.message : e)]); }
+}
+function igual(a, b, msg) {
+  const ja = JSON.stringify(a), jb = JSON.stringify(b);
+  if (ja !== jb) throw new Error((msg ? msg + ": " : "") + "esperado " + jb + ", obtenido " + ja);
+}
+function verdad(c, msg) { if (!c) throw new Error(msg || "se esperaba verdadero"); }
+function lanza(fn, msg) {
+  let lanzo = false;
+  try { fn(); } catch (e) { lanzo = true; }
+  if (!lanzo) throw new Error(msg || "se esperaba un error");
+}
+const S = (reps, kg) => ({ reps, kg });
+const PLAN = [S(3, 120), S(3, 120), S(3, 127.5)];
+
+if (typeof Logica === "undefined") {
+  resultados.push([false, "No se encontró el objeto global Logica (¿existe celular/logica.js y define const Logica?)"]);
+} else {
+  prueba("parse: ejemplos de la especificación", () => {
+    igual(Logica.parseNotacion("3.3-85.3-80", PLAN), [S(3, 120), S(3, 85), S(3, 80)]);
+    igual(Logica.parseNotacion("3.3", PLAN), [S(3, 120), S(3, 120)]);
+    igual(Logica.parseNotacion("2.3", PLAN), [S(2, 120), S(3, 120)]);
+    igual(Logica.parseNotacion("3-82,5", PLAN), [S(3, 82.5)]);
+    igual(Logica.parseNotacion("0", PLAN), []);
+  });
+  prueba("parse: peso por posición y de la última", () => {
+    igual(Logica.parseNotacion("3.3.3.2", PLAN), [S(3, 120), S(3, 120), S(3, 127.5), S(2, 127.5)]);
+  });
+  prueba("parse: el punto separa series", () => {
+    igual(Logica.parseNotacion("3-80.5", PLAN), [S(3, 80), S(5, 120)]);
+  });
+  prueba("parse: espacios", () => {
+    igual(Logica.parseNotacion(" 3 . 3 - 85 ", PLAN), [S(3, 120), S(3, 85)]);
+  });
+  prueba("parse: límites y decimales", () => {
+    igual(Logica.parseNotacion("99", PLAN), [S(99, 120)]);
+    igual(Logica.parseNotacion("1-0,5", PLAN), [S(1, 0.5)]);
+  });
+  prueba("parse: sin planificadas", () => {
+    let mensaje = "";
+    try { Logica.parseNotacion("3", []); } catch (e) { mensaje = e.message; }
+    verdad(mensaje.includes("indicá el peso"), "el mensaje tiene que decir 'indicá el peso', dijo: " + mensaje);
+    igual(Logica.parseNotacion("3-90", []), [S(3, 90)]);
+  });
+  prueba("parse: inválidos", () => {
+    for (const t of ["", "   ", "3..3", "3-", "-80", "0.3", "3.0", "100", "3-0", "a", "3.", ".3", "3-8a", "3--80",
+                     "3-80,", "3-,5", "+3", "3,5", "00", "3-80,5,1", "3-80abc", "1e2"]) {
+      lanza(() => Logica.parseNotacion(t, PLAN), "debería ser inválido: [" + t + "]");
+      verdad(Logica.esNotacionValida(t, PLAN) === false, "esNotacionValida debería ser false: [" + t + "]");
+    }
+    lanza(() => Logica.parseNotacion(null, PLAN), "null");
+  });
+  prueba("parse: no modifica las planificadas", () => {
+    const copia = JSON.parse(JSON.stringify(PLAN));
+    Logica.parseNotacion("3.3.3.3-50", copia);
+    igual(copia, PLAN);
+  });
+
+  const plan = {
+    formato: "rutineitor-plan", version: 1, perfil: "Franco Pérez", mesocicloId: 3, inicio: "2026-10-26",
+    microciclos: 2, dias: 2,
+    sesiones: [
+      { microciclo: 1, dia: 1, ejercicios: [{ bloque: "1-1", nombre: "Sentadilla", tipo: "FUERZA", modo: "COMPLEJA", rm: 150,
+        filas: [{ etiqueta: "80-85", pctMin: 80, pctMax: 85, series: PLAN }] }] },
+      { microciclo: 1, dia: 2, ejercicios: [] },
+      { microciclo: 2, dia: 1, ejercicios: [] },
+      { microciclo: 2, dia: 2, ejercicios: [] },
+    ],
+  };
+
+  prueba("validarPlan", () => {
+    igual(Logica.validarPlan(plan), plan);
+    lanza(() => Logica.validarPlan({ formato: "otro", version: 1, sesiones: [] }));
+    lanza(() => Logica.validarPlan({ formato: "rutineitor-plan", version: 2, sesiones: [] }));
+    lanza(() => Logica.validarPlan({ formato: "rutineitor-plan", version: 1 }));
+    lanza(() => Logica.validarPlan(null));
+  });
+  prueba("sesionDelPlan", () => {
+    igual(Logica.sesionDelPlan(plan, 1, 1).ejercicios[0].bloque, "1-1");
+    igual(Logica.sesionDelPlan(plan, 2, 2).ejercicios, []);
+    igual(Logica.sesionDelPlan(plan, 3, 1), null);
+  });
+  prueba("registroVacio", () => {
+    igual(Logica.registroVacio(plan), { formato: "rutineitor-registro", version: 1, perfil: "Franco Pérez", mesocicloId: 3, sesiones: [] });
+  });
+  prueba("guardarSesion: agrega, ordena, reemplaza y no modifica el original", () => {
+    const r0 = Logica.registroVacio(plan);
+    const s22 = { microciclo: 2, dia: 2, fecha: "2026-11-05", descanso: 4, final: null, ejercicios: [] };
+    const s11 = { microciclo: 1, dia: 1, fecha: "2026-10-27", descanso: 5, final: 3,
+                  ejercicios: [{ bloque: "1-1", esfuerzo: 4, filas: { "80-85": "3.3-115" } }] };
+    const r1 = Logica.guardarSesion(r0, s22);
+    const r2 = Logica.guardarSesion(r1, s11);
+    igual(r0.sesiones, [], "el registro original no cambia");
+    igual(r2.sesiones.map(s => s.microciclo + "-" + s.dia), ["1-1", "2-2"]);
+    const r3 = Logica.guardarSesion(r2, Object.assign({}, s11, { descanso: 1 }));
+    igual(r3.sesiones.length, 2);
+    igual(Logica.sesionDelRegistro(r3, 1, 1).descanso, 1);
+    igual(Logica.sesionDelRegistro(r3, 1, 2), null);
+  });
+  prueba("limpiarSesion", () => {
+    const s = { microciclo: 1, dia: 1, fecha: "2026-10-27", descanso: null, final: null, ejercicios: [
+      { bloque: "1-1", esfuerzo: null, filas: { "70": "  ", "80-85": " 3.3 " } },
+      { bloque: "1-2", esfuerzo: null, filas: { "4x12": "" } },
+      { bloque: "1-3", esfuerzo: 2, filas: {} },
+    ] };
+    const original = JSON.stringify(s);
+    igual(Logica.limpiarSesion(s).ejercicios, [
+      { bloque: "1-1", esfuerzo: null, filas: { "80-85": "3.3" } },
+      { bloque: "1-3", esfuerzo: 2, filas: {} },
+    ]);
+    igual(JSON.stringify(s), original, "no modifica el argumento");
+    igual(Logica.guardarSesion(Logica.registroVacio(plan), s).sesiones[0].ejercicios.length, 2, "guardarSesion limpia");
+  });
+  prueba("pista", () => {
+    igual(Logica.pista(PLAN), "3.3.3 · 120/127,5");
+    igual(Logica.pista([S(12, 0), S(12, 0)]), "12.12");
+    igual(Logica.pista([S(4, 105), S(4, 105)]), "4.4 · 105");
+    igual(Logica.pista([]), "");
+  });
+  prueba("nombreArchivoRegistro", () => {
+    igual(Logica.nombreArchivoRegistro(plan), "registro-Franco_Pérez-2026-10-26.json");
+  });
+}
+
+const fallas = resultados.filter(r => !r[0]);
+const lista = document.getElementById("lista");
+for (const [ok, texto] of resultados) {
+  const li = document.createElement("li");
+  li.className = ok ? "ok" : "mal";
+  li.textContent = (ok ? "✔ " : "✘ ") + texto;
+  lista.appendChild(li);
+}
+const resumen = document.getElementById("resumen");
+resumen.textContent = fallas.length === 0 ? "Todas las pruebas pasaron (" + resultados.length + ")"
+                                          : fallas.length + " de " + resultados.length + " pruebas fallaron";
+resumen.className = fallas.length === 0 ? "ok" : "mal";
+</script>
+</body>
+</html>
