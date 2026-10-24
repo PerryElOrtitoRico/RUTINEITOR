@@ -10,7 +10,7 @@ Esta tarea es de pasos, no de código. La puede hacer el usuario, el LLM o Claud
    ```bash
    git subtree split --prefix celular -b pages
    ```
-2. Comprobar que no se cuela nada más: `git ls-tree -r --name-only pages` tiene que listar solo `index.html`, `logica.js`, `manifest.webmanifest`, `sw.js` e `icono.svg`.
+2. Comprobar que no se cuela nada más: `git ls-tree -r --name-only pages` tiene que listar solo `index.html`, `logica.js`, `manifest.webmanifest`, `sw.js` e `icono.png`.
 3. Agregar el remoto, solo la primera vez:
    ```bash
    git remote add pages git@github.com:PerryElOrtitoRico/rutineitor.git

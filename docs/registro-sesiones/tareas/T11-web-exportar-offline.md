@@ -9,7 +9,7 @@ Las mismas de T09.
 
 ## Archivos
 - Modificar `celular/index.html` (botón "Exportar registro" y registro del service worker).
-- Crear `celular/manifest.webmanifest`, `celular/sw.js` y `celular/icono.svg`.
+- Crear `celular/manifest.webmanifest`, `celular/sw.js` y `celular/icono.png`.
 
 ## Exportar registro
 - Al tocar **"Exportar registro"**, se toma el registro del plan activo y se genera `JSON.stringify(registro, null, 2)` con nombre `Logica.nombreArchivoRegistro(plan)`.
@@ -22,11 +22,11 @@ Las mismas de T09.
   - `name: "RUTINEITOR Registro"`, `short_name: "Rutineitor"`;
   - `start_url: "./"`, `scope: "./"`, `display: "standalone"`;
   - `background_color` y `theme_color` a elección;
-  - `icons` con `icono.svg` (`"sizes": "any"`, `"type": "image/svg+xml"`).
-- `icono.svg`: **copiá** `docs/icono/rutineitor.svg` (el ícono del programa de la PC); no dibujes uno nuevo.
+  - `icons` con `icono.png` (`"sizes": "512x512"`, `"type": "image/png"`).
+- `icono.png`: **copiá** `docs/icono/rutineitor-512.png` (el ícono del programa de la PC, 512 × 512); no dibujes uno nuevo.
 - `index.html`: `<link rel="manifest" href="manifest.webmanifest">`, `<meta name="theme-color" …>` y, al cargar, `navigator.serviceWorker.register("sw.js")` si existe `serviceWorker` (dentro de `try/catch`, y sin romper nada si se abre como `file://`).
 - `sw.js`:
-  - en `install`, guarda en `caches` los archivos `./`, `./index.html`, `./logica.js`, `./manifest.webmanifest` y `./icono.svg` (cache con nombre versionado, por ejemplo `rutineitor-v1`);
+  - en `install`, guarda en `caches` los archivos `./`, `./index.html`, `./logica.js`, `./manifest.webmanifest` y `./icono.png` (cache con nombre versionado, por ejemplo `rutineitor-v1`);
   - en `activate`, borra los caches de versiones anteriores;
   - en `fetch`, responde primero desde el cache y, si no está, va a la red.
 - Todas las rutas son **relativas** (`./`), porque la app se publica en `/rutineitor/`, no en la raíz del dominio.

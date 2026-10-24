@@ -169,7 +169,7 @@ Para cada sesión anotada y cada `tipo` presente en ella:
 - Carpeta `celular/` en la raíz del repo, sin librerías ni herramientas de compilación:
   - `logica.js`: funciones puras (notación, registro, nombres), sin tocar la pantalla; se prueban con `docs/registro-sesiones/evaluacion/web/pruebas.html`;
   - `index.html`: la pantalla (HTML + CSS + JavaScript) que usa `logica.js`;
-  - `manifest.webmanifest`, `sw.js` e `icono.svg`: para que funcione sin conexión y se pueda instalar en la pantalla de inicio.
+  - `manifest.webmanifest`, `sw.js` e `icono.png`: para que funcione sin conexión y se pueda instalar en la pantalla de inicio.
 - Se publica **solo la carpeta `celular/`**, no el resto del repo (que tiene tus planillas y datos).
 - Se publica con GitHub Pages en `https://perryelortitorico.github.io/rutineitor/`.
 - Guarda todo en `localStorage` del celular. No envía datos a ningún lado.
