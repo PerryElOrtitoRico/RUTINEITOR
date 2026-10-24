@@ -15,7 +15,7 @@ import javax.swing.WindowConstants;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-/** Ventana con las cuatro pestañas: Ejercicios, Plantillas, Macrociclo y Mesociclo. */
+/** Ventana con las pestañas Ejercicios, Plantillas, Macrociclo, Mesociclo y Progreso. */
 public final class VentanaPrincipal extends JFrame {
 
     private final JTabbedPane pestanas = new JTabbedPane();
@@ -29,6 +29,7 @@ public final class VentanaPrincipal extends JFrame {
         pestanas.addTab("Plantillas", new PanelPlantillas(ctx));
         pestanas.addTab("Macrociclo", new PanelMacrociclo(ctx, this::abrirMesociclo));
         pestanas.addTab("Mesociclo", panelMesociclo);
+        pestanas.addTab("Progreso", new PanelProgreso(ctx));
         setContentPane(pestanas);
 
         JMenuBar barra = new JMenuBar();
