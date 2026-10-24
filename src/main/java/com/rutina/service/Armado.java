@@ -58,6 +58,24 @@ public final class Armado {
         return res;
     }
 
+    /**
+     * Mueve el bloque (dia, posicion) un lugar arriba (delta = -1) o abajo (+1) dentro de su día,
+     * intercambiando la posición con el vecino. Si no hay vecino, devuelve la lista igual.
+     */
+    public static List<Bloque> mover(List<Bloque> bloques, int dia, int posicion, int delta) {
+        int destino = posicion + delta;
+        boolean hayVecino = bloques.stream().anyMatch(b -> b.dia() == dia && b.posicion() == destino);
+        if (!hayVecino) return bloques;
+        List<Bloque> res = new ArrayList<>();
+        for (Bloque b : bloques) {
+            int pos = b.posicion();
+            if (b.dia() == dia && pos == posicion) pos = destino;
+            else if (b.dia() == dia && pos == destino) pos = posicion;
+            res.add(new Bloque(b.dia(), pos, b.ejercicioId(), b.pctBolsa()));
+        }
+        return res;
+    }
+
     public static boolean esCompleja(Ejercicio e, Mesociclo mes) {
         if (e == null) return false;
         if (e.tipo() == Tipo.POTENCIA) return true;

@@ -66,7 +66,8 @@ class ExportadorPdfTest {
     void unaPaginaSinPlio() throws Exception {
         exportar(100.0, List.of());
         assertEquals(1, paginas());
-        assertTrue(texto(1).contains("80-88kg"), texto(1));
+        assertTrue(texto(1).contains("80-87,5"), texto(1)); // redondeo de a 2,5 kg
+        assertFalse(texto(1).contains("kg"), texto(1));     // los pesos van sin "kg"
         assertTrue(texto(1).contains("Sentadilla"));
         assertTrue(texto(1).contains("Lumbaresenbanco"));
     }

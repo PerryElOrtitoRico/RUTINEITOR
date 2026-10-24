@@ -283,6 +283,14 @@ final class PanelMesociclo extends JPanel {
             aprox.addActionListener(ev -> cambiarAproximacion(e, compleja ? Aproximacion.BASICA : Aproximacion.COMPLEJA));
             acciones.add(aprox);
         }
+        JButton subir = new JButton("↑");
+        subir.setToolTipText("Subir en el día");
+        subir.addActionListener(ev -> mover(b, -1));
+        JButton bajar = new JButton("↓");
+        bajar.setToolTipText("Bajar en el día");
+        bajar.addActionListener(ev -> mover(b, +1));
+        acciones.add(subir);
+        acciones.add(bajar);
         JButton quitar = new JButton("Quitar");
         quitar.addActionListener(ev -> quitar(b));
         acciones.add(quitar);
@@ -330,7 +338,7 @@ final class PanelMesociclo extends JPanel {
                     fila[w + 1] = t;
                 }
                 if (!alguna) continue;
-                fila[0] = z.pct() + "%" + (rm == null ? "" : " · " + fmt(Redondeo.kg(rm, z.pct(), ctx.metodologia().incrementoKg())) + " kg");
+                fila[0] = z.pct() + "%" + (rm == null ? "" : " · " + fmt(Redondeo.kg(rm, z.pct(), ctx.metodologia().incrementoKg())));
                 m.addRow(fila);
             }
         }
@@ -432,6 +440,10 @@ final class PanelMesociclo extends JPanel {
             bloques.add(x.dia() == dia && x.posicion() == posicion ? new Bloque(dia, posicion, x.ejercicioId(), pct) : x);
         }
         guardar(con(bloques, actual.aproximaciones()));
+    }
+
+    private void mover(Bloque b, int delta) {
+        guardar(con(Armado.mover(actual.bloques(), b.dia(), b.posicion(), delta), actual.aproximaciones()));
     }
 
     private void cambiarAproximacion(Ejercicio e, Aproximacion a) {

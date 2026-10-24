@@ -25,7 +25,8 @@ public final class DatosIniciales {
     }
 
     public static Metodologia metodologia() {
-        return new Metodologia(variantes(), diaPct(), ref(), repsPorSerie(), plantillas(), volPlio(), 1.0);
+        // redondeo de a 2,5 kg: los discos más chicos de un gimnasio común son de 1,25 kg por lado
+        return new Metodologia(variantes(), diaPct(), ref(), repsPorSerie(), plantillas(), volPlio(), 2.5);
     }
 
     // Hoja Calculos: % de volumen y ΔIMR por microciclo

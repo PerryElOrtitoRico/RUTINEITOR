@@ -93,6 +93,6 @@ class DatosInicialesTest {
 
     @Test
     void incrementoKg() {
-        assertEquals(1.0, M.incrementoKg());
+        assertEquals(2.5, M.incrementoKg()); // discos de 1,25 kg por lado
     }
 }

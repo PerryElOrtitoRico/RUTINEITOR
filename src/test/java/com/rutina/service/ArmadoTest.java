@@ -43,6 +43,20 @@ class ArmadoTest {
     }
 
     @Test
+    void moverIntercambiaConElVecinoDelMismoDia() {
+        var bloques = List.of(new Bloque(1, 1, 10L, 100), new Bloque(1, 2, 20L, 100), new Bloque(2, 1, 30L, 100));
+        var res = Armado.mover(bloques, 1, 2, -1);
+        assertEquals(List.of(new Bloque(1, 2, 10L, 100), new Bloque(1, 1, 20L, 100), new Bloque(2, 1, 30L, 100)), res);
+    }
+
+    @Test
+    void moverFueraDelDiaNoCambiaNada() {
+        var bloques = List.of(new Bloque(1, 1, 10L, 100), new Bloque(1, 2, 20L, 100));
+        assertEquals(bloques, Armado.mover(bloques, 1, 1, -1));
+        assertEquals(bloques, Armado.mover(bloques, 1, 2, +1));
+    }
+
+    @Test
     void pctIgualesEntreComplejosDelMismoTipoYDia() {
         var bloques = List.of(new Bloque(1, 1, 1L, 100), new Bloque(1, 2, 2L, 100), new Bloque(1, 3, 3L, 100),
                 new Bloque(2, 1, 1L, 100), new Bloque(1, 4, 4L, 100));

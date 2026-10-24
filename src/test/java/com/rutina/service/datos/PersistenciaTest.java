@@ -41,10 +41,10 @@ class PersistenciaTest {
         var repo = new MetodologiaRepo(abrir());
         var m = repo.cargar();
         repo.guardar(new com.rutina.model.Metodologia(m.variantes(), m.diaPct(), m.ref(), m.repsPorSerie(),
-                m.plantillas(), m.volPlio(), 2.5));
-        assertEquals(2.5, repo.cargar().incrementoKg());
-        repo.restaurar();
+                m.plantillas(), m.volPlio(), 1.0));
         assertEquals(1.0, repo.cargar().incrementoKg());
+        repo.restaurar();
+        assertEquals(2.5, repo.cargar().incrementoKg());
     }
 
     @Test

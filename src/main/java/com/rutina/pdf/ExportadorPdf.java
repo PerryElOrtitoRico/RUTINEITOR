@@ -158,7 +158,7 @@ public final class ExportadorPdf {
         if (rm == null) return f.etiquetaPct();
         double min = Redondeo.kg(rm, f.pctMin(), m.incrementoKg());
         double max = Redondeo.kg(rm, f.pctMax(), m.incrementoKg());
-        return min == max ? KG.format(min) + " kg" : KG.format(min) + "-" + KG.format(max) + " kg";
+        return min == max ? KG.format(min) : KG.format(min) + "-" + KG.format(max);
     }
 
     private static String textoCelda(CeldaPlantilla c, Double rm, Metodologia m) {
@@ -167,7 +167,7 @@ public final class ExportadorPdf {
         if (rm == null) return c.texto();
         double min = Redondeo.kg(rm, c.pctMin(), m.incrementoKg());
         double max = Redondeo.kg(rm, c.pctMax(), m.incrementoKg());
-        return base + " · " + (min == max ? KG.format(min) : KG.format(min) + "-" + KG.format(max)) + " kg";
+        return base + " · " + (min == max ? KG.format(min) : KG.format(min) + "-" + KG.format(max));
     }
 
     private static void paginaPliometria(Document doc, PlanConDias p) throws DocumentException {
